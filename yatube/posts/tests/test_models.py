@@ -63,6 +63,7 @@ class PostModelTest(TestCase):
                 self.assertEqual(
                     post._meta.get_field(field).help_text, expected_value)
 
+
 class FollowModelTest(TestCase):
     @classmethod
     def setUpClass(cls):

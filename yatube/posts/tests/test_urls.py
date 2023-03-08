@@ -4,9 +4,9 @@ from django.contrib.auth.models import User
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.cache import cache
-from django.http import Http404, HttpResponse, HttpResponseForbidden
+from django.http import HttpResponseForbidden
 
-from posts.models import Post, Group, Comment
+from posts.models import Post, Group
 
 
 class StaticURLTests(TestCase):
@@ -114,7 +114,7 @@ class StaticURLTests(TestCase):
         """Редирект неавторизованного пользователя
         при попытке добавить коммент"""
         url = reverse('posts:add_comment', kwargs={'post_id': self.post.pk})
-        redir_url =  reverse('users:login') + '?next=' + url
+        redir_url = reverse('users:login') + '?next=' + url
         response = self.client.get(url)
         self.assertRedirects(response, redir_url)
 
@@ -126,5 +126,4 @@ class StaticURLTests(TestCase):
 
     def test_url_403_uses_custom_template(self):
         response = HttpResponseForbidden(reverse('posts:index'))
-        template = 'core/403csrf.html'
         self.assertEqual(response.status_code, 403)
