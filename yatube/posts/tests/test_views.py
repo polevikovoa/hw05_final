@@ -7,8 +7,7 @@ import tempfile
 from django.conf import settings
 from django import forms
 from django.contrib.auth.models import User
-from django.test import TestCase, Client, override_settings, \
-    TransactionTestCase
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
@@ -163,7 +162,6 @@ class TaskPagesTests(TestCase):
                        kwargs={'slug': f'{self.group.slug}'})
         response = self.authorized_author.get(page)
         group_context = response.context['group']
-        page_obj_context = response.context['page_obj'][0]
         group_title = group_context.title
         group_slug = group_context.slug
         group_description = group_context.description
@@ -318,20 +316,20 @@ class FollowViewsTest(TestCase):
 
     def test_unfollow_on_user(self):
         """Проверка отписки от пользователя."""
-        follow = Follow.objects.create(
+        Follow.objects.create(
             user=self.follower,
             author=self.author
         )
         count_follow = Follow.objects.count()
-        post = Post.objects.create(
+        Post.objects.create(
             text='Post for unfollow',
             author=self.author
         )
         self.assertEqual(Follow.objects.all().count(), 1)
         self.follower_client.post(
-                reverse(
-                    'posts:profile_unfollow',
-                    kwargs={'username': self.author.username}))
+            reverse(
+                'posts:profile_unfollow',
+                kwargs={'username': self.author.username}))
         self.assertEqual(Follow.objects.all().count(), 0)
         self.assertEqual(Follow.objects.count(), count_follow - 1)
 
