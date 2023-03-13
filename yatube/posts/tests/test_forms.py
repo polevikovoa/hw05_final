@@ -102,7 +102,7 @@ class TaskCreateFormTests(TestCase):
             Comment.objects.all().values_list('id', flat=True))
         response = self.authorized_author.post(
             reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
-                    data=form_data, follow=True)
+            data=form_data, follow=True)
         fin_comment_ids = list(
             Comment.objects.all().values_list('id', flat=True))
         diff_id = list(set(fin_comment_ids) - set(initial_comment_ids))

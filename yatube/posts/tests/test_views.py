@@ -316,24 +316,8 @@ class FollowViewsTest(TestCase):
         self.assertEqual(follow.user_id, self.follower.id)
         self.assertEqual(already_follows_after, True)
 
-    # def test_unfollow_on_user(self):
-    #     """Проверка отписки от пользователя."""
-    #     Follow.objects.create(
-    #         user=self.follower,
-    #         author=self.author)
-    #     count_follow = Follow.objects.count()
-    #     self.follower_client.post(
-    #         reverse(
-    #             'posts:profile_unfollow',
-    #             kwargs={'username': self.author.username}))
-    #     unfollow_result = Follow.objects.filter(
-    #         user=self.follower,
-    #         author=self.author
-    #     ).exists()
-    #     self.assertEqual(unfollow_result, False)
-    #     self.assertEqual(Follow.objects.count(), count_follow - 1)
-    def test_follow_auth(self):
-        self.follower_client.force_login(self.follower)
+    def test_unfollow_on_user(self):
+        """Проверка отписки от пользователя."""
         follow = Follow.objects.create(
             user=self.follower,
             author=self.author
