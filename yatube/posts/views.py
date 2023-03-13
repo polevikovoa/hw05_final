@@ -98,17 +98,13 @@ def add_comment(request, post_id):
     template_name = 'posts/post_detail.html'
     comment_form = CommentForm(request.POST or None)
     if comment_form.is_valid():
-        # Create Comment object but don't save to database yet
         new_comment = comment_form.save(commit=False)
         new_comment.author = request.user
-        # Assign the current post to the comment
         new_comment.post = post
-        # Save the comment to the database
         new_comment.save()
         return redirect('posts:post_detail', post_id=post_id)
-    else:
-        return render(request, template_name, {'post': post,
-                                               'comment_form': comment_form})
+    return render(request, template_name, {'post': post,
+                                           'comment_form': comment_form})
 
 
 @login_required
@@ -126,6 +122,11 @@ def profile_follow(request, username):
         Follow.objects.get_or_create(user=request.user, author=author)
     return redirect('posts:profile', author)
 
+#                            Pytest не пропускает
+# @login_required
+# def profile_unfollow(request, username):
+#     user_follower = Follow.objects.filter(user=request.user).delete()
+#     return redirect('posts:profile', username)
 
 @login_required
 def profile_unfollow(request, username):
