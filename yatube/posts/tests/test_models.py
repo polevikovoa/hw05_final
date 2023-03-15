@@ -22,7 +22,6 @@ class PostModelTest(TestCase):
 
     def test_models_have_correct_object_names(self):
         """Проверяем, что у моделей корректно работает __str__."""
-
         post = PostModelTest.post
         group = PostModelTest.group
         models = [
@@ -37,7 +36,6 @@ class PostModelTest(TestCase):
 
     def test_verbose_name(self):
         """verbose_name полей совпадает с ожидаемым."""
-
         post = PostModelTest.post
         field_verboses = {
             'author': 'Автор',
@@ -52,7 +50,6 @@ class PostModelTest(TestCase):
 
     def test_help_text(self):
         """help_text полей совпадает с ожидаемым."""
-
         post = PostModelTest.post
         field_help_text = {
             'text': 'Введите текст поста',

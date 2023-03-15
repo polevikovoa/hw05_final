@@ -1,18 +1,17 @@
+import shutil
+import tempfile
 from http import HTTPStatus
 
-import shutil
-
-import tempfile
-
-from django.conf import settings
 from django import forms
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.cache import cache
 
 from posts.constants import PAG_PAGE_NUM
+from posts.forms import CommentForm
 from posts.models import Post, Group, Comment, Follow
 
 NUM_OF_POST: int = 13
@@ -78,8 +77,9 @@ class TaskPagesTests(TestCase):
         with self.subTest(post=post):
             self.assertEqual(post.text, self.post.text)
             self.assertEqual(post.author, self.post.author)
-            self.assertEqual(post.group.id, self.post.group.id)
+            self.assertEqual(post.group, self.post.group)
             self.assertEqual(post.image, self.post.image)
+            self.assertEqual(post.id, self.post.id)
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон для guest/auth users"""
@@ -170,55 +170,42 @@ class TaskPagesTests(TestCase):
         self.assertEqual(group_description, self.group.description)
         self.check_post_info(response.context['page_obj'][0])
 
+    def test_forms_show_correct(self):
+        """Проверка коректности формы поста."""
+        url_fields = {
+            reverse('posts:post_create'),
+            reverse('posts:post_edit', kwargs={'post_id': self.post.id, }),
+        }
+        for reverse_page in url_fields:
+            with self.subTest(reverse_page=reverse_page):
+                response = self.authorized_author.get(reverse_page)
+                self.assertIsInstance(
+                    response.context['form'].fields['text'],
+                    forms.fields.CharField)
+                self.assertIsInstance(
+                    response.context['form'].fields['group'],
+                    forms.fields.ChoiceField)
+                self.assertIsInstance(
+                    response.context['form'].fields['image'],
+                    forms.fields.ImageField)
+
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
         response = self.authorized_author.get(
             reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
-        post = {response.context['post'].text: self.post.text,
-                response.context['post'].group: self.group,
-                response.context['post'].author: self.post_author,
-                response.context['comments'][0].text: self.comment.text,
-                response.context['comments'][0].author: self.post_author,
-                response.context['comments'][0].post: self.post}
-        for value, expected in post.items():
-            self.assertEqual(post[value], expected)
+        context = {response.context['comments'][0].text: self.comment.text,
+                   response.context['comments'][0].author: self.post_author,
+                   response.context['comments'][0].post: self.post}
+        for value, expected in context.items():
+            self.assertEqual(context[value], expected)
             self.check_post_info(response.context['post'])
-
-    def test_create_post_show_correct_context(self):
-        """Шаблон create_post сформирован с правильным контекстом."""
-        response = self.authorized_author.get(reverse('posts:post_create'))
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-        }
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
 
     def test_edit_post_show_correct_context(self):
         """Шаблон edit_post сформирован с правильным контекстом."""
         response = self.authorized_author.get(
             reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
-        form_fields = {
-            'text': forms.fields.CharField,
-            'group': forms.fields.ChoiceField,
-        }
-        for value, expected in form_fields.items():
-            with self.subTest(value=value):
-                form_field = response.context.get('form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
-
-    def test_context_post_comment(self):
-        """Проверяем, что комментарий передается в контексте"""
-        page = reverse('posts:post_detail',
-                       kwargs={'post_id': f'{self.post.id}'})
-        response = self.authorized_author.get(page)
-        context_obj = response.context['comments']
-        post_comment = Comment.objects.all()
-        error_post = 'Комментарий отсутствует'
-        self.assertTrue(context_obj, error_post)
-        self.assertTrue(post_comment, error_post)
+        self.assertEqual(response.context['is_edit'], True)
+        self.check_post_info(response.context['post'])
 
     def test_post_added_correctly(self):
         """Проверка создания поста с разными условиями."""
@@ -299,19 +286,16 @@ class FollowViewsTest(TestCase):
             user=self.follower,
             author=self.author
         ).exists()
-        if not already_follows:
-            self.follower_client.post(
-                reverse(
-                    'posts:profile_follow',
-                    kwargs={'username': self.author.username}))
+        self.assertEqual(already_follows, False)
+        self.follower_client.post(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.author.username}))
         already_follows_after = Follow.objects.filter(
             user=self.follower,
             author=self.author
         ).exists()
-        follow = Follow.objects.get(author=self.author)
         self.assertEqual(Follow.objects.count(), count_follow + 1)
-        self.assertEqual(follow.author_id, self.author.id)
-        self.assertEqual(follow.user_id, self.follower.id)
         self.assertEqual(already_follows_after, True)
 
     def test_unfollow_on_user(self):
@@ -321,16 +305,13 @@ class FollowViewsTest(TestCase):
             author=self.author
         )
         count_follow = Follow.objects.count()
-        Post.objects.create(
-            text='Post for unfollow',
-            author=self.author
-        )
-        self.assertEqual(Follow.objects.all().count(), 1)
+        check_unfollow = Follow.objects.filter(user=self.follower,
+                                          author=self.author)
         self.follower_client.post(
             reverse(
                 'posts:profile_unfollow',
                 kwargs={'username': self.author.username}))
-        self.assertEqual(Follow.objects.all().count(), 0)
+        self.assertEqual(check_unfollow.count(), 0)
         self.assertEqual(Follow.objects.count(), count_follow - 1)
 
     def test_follow_on_authors(self):

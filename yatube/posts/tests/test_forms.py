@@ -29,19 +29,17 @@ class TaskCreateFormTests(TestCase):
             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
             b'\x0A\x00\x3B'
         )
-
         cls.fixture_image = SimpleUploadedFile(
             name='new_small.gif',
             content=cls.small_gif,
-            content_type='image/gif')
-
+            content_type='image/gif'
+        )
         cls.post = Post.objects.create(
-            author=cls.author,
             text='Тестовый пост',
-            group=TaskCreateFormTests.group,
+            author=cls.author,
+            group=cls.group,
             image=cls.fixture_image
         )
-        cls.form = PostForm()
 
     @classmethod
     def tearDownClass(cls):
@@ -52,26 +50,42 @@ class TaskCreateFormTests(TestCase):
         self.authorized_author = Client()
         self.authorized_author.force_login(self.author)
 
+
     def test_create_post(self):
         """Валидная форма создает запись в Post."""
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         form_data = {
-            'text': 'Второй тестовый текст',
+            'text': 'Проверка изображения',
             'group': self.group.id,
-            'image': self.fixture_image,
+            'image': uploaded
         }
         initial_post_ids = list(
             Post.objects.all().values_list('id', flat=True))
+
         response = self.authorized_author.post(reverse('posts:post_create'),
                                                data=form_data, follow=True)
         fin_post_ids = list(
             Post.objects.all().values_list('id', flat=True))
         diff_id = list(set(fin_post_ids) - set(initial_post_ids))
+        post = Post.objects.get(id=int(diff_id[0]))
         self.assertEqual(len(diff_id), 1)
-        expected_post = Post.objects.get(id=int(diff_id[0]))
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertEqual(expected_post.text, form_data['text'])
-        self.assertEqual(expected_post.group.id, form_data['group'])
-        self.assertEqual(expected_post.author, self.post.author)
+        self.assertEqual(post.text, form_data['text'])
+        self.assertEqual(post.group.id, form_data['group'])
+        self.assertEqual(post.author, self.post.author)
+        self.assertTrue(post.image)
         self.assertRedirects(response, reverse(
             'posts:profile', kwargs={'username': self.post.author}))
 

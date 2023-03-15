@@ -61,13 +61,17 @@ def post_detail(request, post_id):
 
 @login_required
 def post_create(request):
-    form = PostForm(request.POST or None)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None)
     if form.is_valid():
-        post = form.save(commit=False)
-        post.author = request.user
-        post.save()
-        return redirect('posts:profile', request.user.username)
-    return render(request, 'posts/create_post.html', {'form': form, })
+        create_post = form.save(commit=False)
+        create_post.author = request.user
+        create_post.save()
+        return redirect('posts:profile', create_post.author)
+    template = 'posts/create_post.html'
+    context = {'form': form}
+    return render(request, template, context)
 
 
 @login_required
@@ -122,19 +126,8 @@ def profile_follow(request, username):
         Follow.objects.get_or_create(user=request.user, author=author)
     return redirect('posts:profile', author)
 
-#                            Pytest не пропускает
-# @login_required
-# def profile_unfollow(request, username):
-#     user_follower = Follow.objects.filter(user=request.user).delete()
-#     return redirect('posts:profile', username)
-
 
 @login_required
 def profile_unfollow(request, username):
-    user_follower = get_object_or_404(
-        Follow,
-        user=request.user,
-        author__username=username
-    )
-    user_follower.delete()
+    Follow.objects.filter(author__username=username, user=request.user).delete()
     return redirect('posts:profile', username)

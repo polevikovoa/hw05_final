@@ -1,11 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import BadHeaderError
-from django.core.mail import send_mail
+from django.core.mail import BadHeaderError, send_mail
 from django.db.models.query_utils import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect

@@ -42,6 +42,7 @@ class StaticURLTests(TestCase):
         cache.clear()
 
     def test_url_404(self):
+        """Проверка несуществующей страницы"""
         response = self.client.get('/nothingPage')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
@@ -119,11 +120,13 @@ class StaticURLTests(TestCase):
         self.assertRedirects(response, redir_url)
 
     def test_url_404_uses_custom_template(self):
+        """Проверка шаблона для 404"""
         response = self.client.get('/nothingPage')
         template = 'core/404.html'
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
         self.assertTemplateUsed(response, template)
 
     def test_url_403_uses_custom_template(self):
+        """Проверка статуса 403"""
         response = HttpResponseForbidden(reverse('posts:index'))
         self.assertEqual(response.status_code, 403)
