@@ -1,12 +1,11 @@
 import shutil
 from http import HTTPStatus
 
-from django.test import Client, TestCase
-from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
+from django.urls import reverse
 
-from posts.forms import PostForm
 from posts.models import Post, Group, Comment
 from posts.tests.test_views import TEMP_MEDIA_ROOT
 
@@ -49,7 +48,6 @@ class TaskCreateFormTests(TestCase):
     def setUp(self):
         self.authorized_author = Client()
         self.authorized_author.force_login(self.author)
-
 
     def test_create_post(self):
         """Валидная форма создает запись в Post."""

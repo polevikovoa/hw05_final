@@ -11,7 +11,6 @@ from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 
 from posts.constants import PAG_PAGE_NUM
-from posts.forms import CommentForm
 from posts.models import Post, Group, Comment, Follow
 
 NUM_OF_POST: int = 13
@@ -306,7 +305,7 @@ class FollowViewsTest(TestCase):
         )
         count_follow = Follow.objects.count()
         check_unfollow = Follow.objects.filter(user=self.follower,
-                                          author=self.author)
+                                               author=self.author)
         self.follower_client.post(
             reverse(
                 'posts:profile_unfollow',
