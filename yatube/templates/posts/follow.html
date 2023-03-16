@@ -5,11 +5,7 @@
     {% include 'posts/includes/switcher.html' with follow=True %}
     <h1>Последние обновления на сайте</h1>
     {% for post in page_obj %}
-
-        <article>
-            {% include 'posts/includes/posts_card.html' %}
-        </article>
-
+        {% include 'posts/includes/posts_card.html' %}
         {% if not forloop.last %}
             <hr>
         {% endif %}

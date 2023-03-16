@@ -14,7 +14,7 @@
                     <div class="card-header">
 
                         <div class="card-body">
-                            {% include 'form_errors.html' %}
+                            {% include 'includes/form_errors.html' %}
                             <form method="post"
                                 {% if is_edit %}
                                     action="{% url 'posts:post_edit' post.id %}"
@@ -22,7 +22,7 @@
                                     action="{% url 'posts:post_create' %}"
                                 {% endif %}} enctype="multipart/form-data">
                                 {% csrf_token %}
-                                {% include 'fields_form.html' %}
+                                {% include 'includes/fields_form.html' %}
                                 <div class="d-flex justify-content-end">
                                     <button type="submit" class="btn btn-primary">{% if is_edit %}Сохранить{% else %}Добавить{% endif %}</button>
                                 </div>

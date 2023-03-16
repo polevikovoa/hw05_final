@@ -84,6 +84,7 @@ class TaskCreateFormTests(TestCase):
         self.assertEqual(post.group.id, form_data['group'])
         self.assertEqual(post.author, self.post.author)
         self.assertTrue(post.image)
+        self.assertIn('small', post.image.name)
         self.assertRedirects(response, reverse(
             'posts:profile', kwargs={'username': self.post.author}))
 

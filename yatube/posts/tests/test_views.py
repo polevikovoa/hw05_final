@@ -137,7 +137,6 @@ class TaskPagesTests(TestCase):
                 self.assertEqual(count_posts2, NUM_OF_POST - PAG_PAGE_NUM,
                                  error_page2)
 
-    #
     def test_post_index_show_correct_context(self):
         """Шаблон Index сформирован с правильным контекстом."""
         response = self.authorized_author.get(reverse('posts:index'))
@@ -154,7 +153,6 @@ class TaskPagesTests(TestCase):
         self.check_post_info(response.context['page_obj'][0])
         self.assertEqual(response.context['following'], True)
 
-    #
     def test_post_group_show_correct_context(self):
         """Шаблон Group сформирован с правильным контекстом."""
         page = reverse('posts:group_list',
@@ -171,6 +169,8 @@ class TaskPagesTests(TestCase):
 
     def test_forms_show_correct(self):
         """Проверка коректности формы поста."""
+        response_edit = self.authorized_author.get(
+            reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
         url_fields = {
             reverse('posts:post_create'),
             reverse('posts:post_edit', kwargs={'post_id': self.post.id, }),
@@ -187,6 +187,8 @@ class TaskPagesTests(TestCase):
                 self.assertIsInstance(
                     response.context['form'].fields['image'],
                     forms.fields.ImageField)
+        self.assertEqual(response_edit.context['is_edit'], True)
+        self.check_post_info(response_edit.context['post'])
 
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""
@@ -199,12 +201,15 @@ class TaskPagesTests(TestCase):
             self.assertEqual(context[value], expected)
             self.check_post_info(response.context['post'])
 
-    def test_edit_post_show_correct_context(self):
-        """Шаблон edit_post сформирован с правильным контекстом."""
-        response = self.authorized_author.get(
-            reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
-        self.assertEqual(response.context['is_edit'], True)
-        self.check_post_info(response.context['post'])
+        url_fields = {
+            reverse('posts:post_detail', kwargs={'post_id': self.post.id})
+        }
+        for reverse_page in url_fields:
+            with self.subTest(reverse_page=reverse_page):
+                response = self.authorized_author.get(reverse_page)
+                self.assertIsInstance(
+                    response.context['form'].fields['text'],
+                    forms.fields.CharField)
 
     def test_post_added_correctly(self):
         """Проверка создания поста с разными условиями."""
@@ -310,7 +315,7 @@ class FollowViewsTest(TestCase):
             reverse(
                 'posts:profile_unfollow',
                 kwargs={'username': self.author.username}))
-        self.assertEqual(check_unfollow.count(), 0)
+        self.assertFalse(check_unfollow.exists())
         self.assertEqual(Follow.objects.count(), count_follow - 1)
 
     def test_follow_on_authors(self):

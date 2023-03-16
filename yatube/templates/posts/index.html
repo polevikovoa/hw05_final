@@ -13,18 +13,13 @@
         <h1>Последние обновления на сайте</h1>
         {% cache 20 index_page %}
             {% for post in page_obj %}
-
-                <article>
-                    {% include 'posts/includes/posts_card.html' %}
-                </article>
-
+                {% include 'posts/includes/posts_card.html' %}
                 {% if not forloop.last %}
                     <hr>
                 {% endif %}
 
             {% endfor %}
             </div>
-
             {% include 'posts/includes/paginator.html' %}
         {% endcache %}
 {% endblock %}

@@ -6,7 +6,7 @@
     {{ post.text|truncatechars:30 }}
 {% endblock %}
 
-{% block content%}
+{% block content %}
     <div class="row">
         <aside class="col-12 col-md-3">
             <ul class="list-group list-group-flush">
@@ -15,7 +15,7 @@
                 </li>
                 {% if post.group %}
                     <li class="list-group-item">
-                        Группа: {{ post.group }}
+                        Группа: {{ post.group.title }}
                         <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
                     </li>
                 {% endif %}
@@ -37,12 +37,11 @@
                     <img class="card-img-top" src="{{ im.url }}">
                 {% endthumbnail %}
                 <div class="card-body">
-                    <h4 class="card-title">Заголовок</h4>
                     <p class="card-text">
                         {{ post.text|linebreaksbr }}
                     </p>
-                    {% if post.author == requser %}
-                        <a class="btn btn-primary" href="{% url 'posts:edit' post.id %}">
+                    {% if user == post.author %}
+                        <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
                             Редактировать запись
                         </a>
                     {% endif %}
