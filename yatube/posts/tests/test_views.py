@@ -169,8 +169,6 @@ class TaskPagesTests(TestCase):
 
     def test_forms_show_correct(self):
         """Проверка коректности формы поста."""
-        response_edit = self.authorized_author.get(
-            reverse('posts:post_edit', kwargs={'post_id': self.post.id}))
         url_fields = {
             reverse('posts:post_create'),
             reverse('posts:post_edit', kwargs={'post_id': self.post.id, }),
@@ -187,8 +185,10 @@ class TaskPagesTests(TestCase):
                 self.assertIsInstance(
                     response.context['form'].fields['image'],
                     forms.fields.ImageField)
-        self.assertEqual(response_edit.context['is_edit'], True)
-        self.check_post_info(response_edit.context['post'])
+            if reverse_page == reverse('posts:post_edit',
+                                       kwargs={'post_id': self.post.id, }):
+                self.assertEqual(response.context['is_edit'], True)
+                self.check_post_info(response.context['post'])
 
     def test_post_detail_show_correct_context(self):
         """Шаблон post_detail сформирован с правильным контекстом."""

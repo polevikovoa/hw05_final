@@ -18,8 +18,7 @@
         {{ post.text|linebreaksbr }}
     </p>
     <a href="{% url 'posts:post_detail' post.id %}" class="btn btn-primary">подробная информация</a>
-    {% if post.group and request.path == '/' %}
-
+    {% if post.group and not group %}
         <a href="{% url 'posts:group_list' post.group.slug %}" class="btn btn-primary">Все записи группы "{{ post.group.title }}"</a>
     {% endif %}
 </article>
